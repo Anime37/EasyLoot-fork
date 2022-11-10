@@ -125,6 +125,7 @@ function EasyLoot_SetVariables()
 	if(not EasyLootLootList) then
 		EasyLootLootList = {}
 		EasyLootLootList.ignore = {}
+		EasyLootLootList.ignoretype = {}
 		EasyLootLootList.autoloot = {}
 		EasyLootLootList.need = {}
 		EasyLootLootList.needkeep = {}
@@ -153,20 +154,29 @@ function EasyLoot_OnDragStop(self)
 end
 
 function EasyLoot_HandleLoot()
-	local numItems = GetNumLootItems()
+    local numItems = GetNumLootItems()
 	--DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot number of items:" .. numItems)
-	for i=1,numItems do
-		local lootIcon, lootName, lootQuantity, rarity, locked = GetLootSlotInfo(i)
-		if(not locked and EasyLootSettings[GetLootMethod()] and (rarity >= EasyLootSettings.rarity or not LootSlotIsItem(i) or EasyLoot_InTable(EasyLootLootList.autoloot, lootName)) and not(EasyLoot_InTable(EasyLootLootList.ignore, lootName))) then
-			LootSlot(i)
-		elseif(EasyLootSettings.quest and not(EasyLoot_InTable(EasyLootLootList.ignore, lootName))) then
-			local itemLink = GetLootSlotLink(i)
-			local _, _, _, _, _, itemType, _, _, _, _, _ = GetItemInfo(itemLink)
-			if(itemType == "Quest") then
-				LootSlot(i)
-			end
-		end
-	end
+    for i=1,numItems do
+        local lootIcon, lootName, lootQuantity, rarity, locked = GetLootSlotInfo(i)
+        -- print("getting link")
+        local itemLink = GetLootSlotLink(i)
+        local itemName, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice
+        if(itemLink) then
+            itemName, _, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemLink)
+            -- print("trying to loot:", lootName, itemRarity, itemType, itemSubType, itemSellPrice, EasyLootLootList.EasyLootPriceLimit)
+            -- if(itemName) then
+            --     print("|cffffff00Item: " .. itemName)
+            -- end
+        end
+        if(not locked and EasyLootSettings[GetLootMethod()] and (rarity >= EasyLootSettings.rarity or not LootSlotIsItem(i) or EasyLoot_InTable(EasyLootLootList.autoloot, lootName)) and not(EasyLoot_InTable(EasyLootLootList.ignore, lootName))) then
+            LootSlot(i)
+        elseif((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and
+                (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)) or
+                ((EasyLootSettings.quest and (itemType == "Quest")) or
+                (itemSellPrice >= EasyLootLootList.EasyLootPriceLimit))) then
+            LootSlot(i)
+        end
+    end
 end
 
 function EasyLoot_HandleRoll(id)
@@ -263,6 +273,7 @@ function EasyLoot_HandleIncomingLoot(message)
 			return
 		end
 	end
+
 	for i=1, #(EasyLootLootList.greed),1  do
 		local name
 		if (type(EasyLootLootList.greed) == "table") then
@@ -290,7 +301,7 @@ function EasyLoot_HandleIncomingLoot(message)
 			end
 		end
 	end
-	
+
 	if EasyLootLootList.destroygrey then
 		local _,_,_,itemId = string.find(message, "^You receive loot: |?c?f?f?(.*)|Hitem:(%d+):.*:.*:.*:.*:.*:.*:.*:.*|.*$")
 		if(itemId) then
@@ -301,7 +312,7 @@ function EasyLoot_HandleIncomingLoot(message)
 			end
 		end
 	end
-	
+
 	if EasyLootLootList.destroy and #EasyLootLootList.destroy > 0 then
 		local _, _, _, _, itemId, _, _, _, _, _, _, _, _, name = string.find(message, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
 		--DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Destroy item: "..name)
@@ -508,6 +519,26 @@ function EasyLoot_IgnoreScrollBar_Update()
 	end
 end
 
+function EasyLoot_IgnoreTypeScrollBar_Update()
+    local line
+    local lineplusoffset
+    FauxScrollFrame_Update(EasyLootFilterIgnoreTypeScrollFrame, #(EasyLootLootList.ignoretype), 5, 16)
+    for line=1,5 do
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterIgnoreTypeScrollFrame)
+        if lineplusoffset <= #(EasyLootLootList.ignoretype) then
+            if(strlen(EasyLootLootList.ignoretype[lineplusoffset]) > 12) then
+                text = strsub(EasyLootLootList.ignoretype[lineplusoffset],1,12).."..."
+            else
+                text = EasyLootLootList.ignoretype[lineplusoffset]
+            end
+            _G["EasyLootIgnoreTypeEntry"..line]:SetText(text)
+            _G["EasyLootIgnoreTypeEntry"..line]:Show()
+        else
+            _G["EasyLootIgnoreTypeEntry"..line]:Hide()
+        end
+    end
+end
+
 function EasyLoot_DestroyScrollBar_Update()
 	local line
 	local lineplusoffset
@@ -627,6 +658,11 @@ function EasyLoot_ListButtonClicked(button)
 		local line = tonumber(strmatch(name, "%d"))
 		tremove(EasyLootLootList.destroy, o+line)
 		EasyLoot_DestroyScrollBar_Update()
+	elseif(strmatch(name, "^EasyLootIgnoreTypeEntry")) then
+		local o = FauxScrollFrame_GetOffset(EasyLootFilterIgnoreTypeScrollFrame)
+		local line = tonumber(strmatch(name, "%d"))
+		tremove(EasyLootLootList.ignoretype, o+line)
+		EasyLoot_IgnoreTypeScrollBar_Update()
 	end
 end
 
@@ -763,6 +799,19 @@ function EasyLoot_AddGreed()
 		EasyLootLootList.greedkeep[n] = false
 		EasyLoot_GreedScrollBar_Update()
 		EasyLootFilterItem:SetText("")
+	end
+	EasyLootFilterItem:ClearFocus()
+end
+
+function EasyLoot_AddIgnoreType()
+	local itemName = EasyLootFilterItem:GetText()
+	if(itemName and not (itemName=="")) then
+        _, _, _, _, _, itemType, itemSubType, _, _, _, _ = GetItemInfo(itemName)
+        if(not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)) then
+            EasyLootLootList.ignoretype[#(EasyLootLootList.ignoretype) + 1] = itemSubType
+            EasyLoot_IgnoreTypeScrollBar_Update()
+            EasyLootFilterItem:SetText("")
+        end
 	end
 	EasyLootFilterItem:ClearFocus()
 end

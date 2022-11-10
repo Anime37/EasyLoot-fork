@@ -73,7 +73,7 @@
 			<Size>
 				<AbsDimension x="16" y="16" />
 			</Size>
-		</NormalTexture>		
+		</NormalTexture>
 		<Scripts>
 			<OnShow>
 				self:GetCheckedTexture():SetTexCoord(0, 0.25, 0, 1)
@@ -857,6 +857,7 @@
 					</OnLoad>
 				</Scripts>
 			</EditBox>
+
 			<ScrollFrame name="EasyLootFilterGreedScrollFrame"
 				inherits="FauxScrollFrameTemplate">
 				<Size>
@@ -1034,6 +1035,105 @@
 					</OnLoad>
 				</Scripts>
 			</EditBox>
+
+      <ScrollFrame name="EasyLootFilterIgnoreTypeScrollFrame"
+        inherits="FauxScrollFrameTemplate">
+        <Size>
+          <AbsDimension x="180" y="80" />
+        </Size>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="EasyLootFilterDestroyScrollFrame"
+            relativePoint="BOTTOMLEFT">
+            <Offset>
+              <AbsDimension x="0" y="-60" />
+            </Offset>
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnVerticalScroll>
+            FauxScrollFrame_OnVerticalScroll(this, offset,
+            16, EasyLoot_IgnoreTypeScrollBar_Update);
+          </OnVerticalScroll>
+        </Scripts>
+      </ScrollFrame>
+      <Button name="EasyLootIgnoreTypeEntry1" inherits="EasyLootEntryTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="EasyLootFilterIgnoreTypeScrollFrame"
+            relativePoint="TOPLEFT">
+            <Offset>
+              <AbsDimension x="8" y="0" />
+            </Offset>
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="EasyLootIgnoreTypeEntry2" inherits="EasyLootEntryTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="EasyLootIgnoreTypeEntry1"
+            relativePoint="BOTTOMLEFT" />
+        </Anchors>
+      </Button>
+      <Button name="EasyLootIgnoreTypeEntry3" inherits="EasyLootEntryTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="EasyLootIgnoreTypeEntry2"
+            relativePoint="BOTTOMLEFT" />
+        </Anchors>
+      </Button>
+      <Button name="EasyLootIgnoreTypeEntry4" inherits="EasyLootEntryTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="EasyLootIgnoreTypeEntry3"
+            relativePoint="BOTTOMLEFT" />
+        </Anchors>
+      </Button>
+      <Button name="EasyLootIgnoreTypeEntry5" inherits="EasyLootEntryTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="EasyLootIgnoreTypeEntry4"
+            relativePoint="BOTTOMLEFT" />
+        </Anchors>
+      </Button>
+      <EditBox name="EasyLootIgnoreTypeLabel" letters="12" autoFocus="false">
+        <Size>
+          <AbsDimension x="10" y="16" />
+        </Size>
+        <Anchors>
+          <Anchor point="BOTTOMLEFT" relativeTo="EasyLootIgnoreTypeEntry1"
+            relativePoint="TOPLEFT">
+            <Offset>
+              <AbsDimension x="0" y="10" />
+            </Offset>
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer>
+            <FontString name="$parentText" font="Fonts\FRIZQT__.TTF"
+              text="Ignore Types">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="12" y="0" />
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <FontHeight>
+                <AbsValue val="10" />
+              </FontHeight>
+              <Color r="1" g="0.8196079" b="0" />
+              <Shadow>
+                <Offset>
+                  <AbsDimension x="1" y="-1" />
+                </Offset>
+                <Color r="0" g="0" b="0" />
+              </Shadow>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnLoad>
+            self:EnableMouse(false)
+            self:EnableKeyboard(false)
+          </OnLoad>
+        </Scripts>
+      </EditBox>
+
 			<EditBox name="EasyLootFilterItem" letters="100">
 				<Size>
 					<AbsDimension x="100" y="20" />
@@ -1119,7 +1219,7 @@
 					</Shadow>
 				</FontString>
 			</EditBox>
-			
+
 			<Button name="$parentButtonSearch" inherits="OptionsButtonTemplate"
 				text="">
 				<Size>
@@ -1236,6 +1336,25 @@
 				<Scripts>
 					<OnClick>
 						EasyLoot_AddGreed()
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="EasyLootFilterButtonIgnoreType" inherits="OptionsButtonTemplate"
+				text="Add">
+				<Size>
+					<AbsDimension x="100" y="22" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="EasyLootFilterIgnoreTypeScrollFrame"
+						relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="10" y="-5" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						EasyLoot_AddIgnoreType()
 					</OnClick>
 				</Scripts>
 			</Button>
@@ -1650,6 +1769,7 @@
 				EasyLoot_DestroyValue_Update()
 				EasyLootFilterDisenchantCheck:SetChecked(EasyLootLootList.DEbeforeGreed)
 				EasyLootFilterGreedCheck:SetChecked(not EasyLootLootList.DEbeforeGreed)
+				EasyLoot_IgnoreTypeScrollBar_Update()
 			</OnShow>
 			<!--
 			<OnReceiveDrag>
@@ -1668,7 +1788,7 @@
 			</OnHide>
 		</Scripts>
 	</Frame>
-	
+
 <!-- Search frame -->
 	<Frame name="EasyLootSearch" movable="true" toplevel="true"
 		frameStrata="MEDIUM" parent="UIParent" enableMouse="true" hidden="true">
