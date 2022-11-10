@@ -139,7 +139,7 @@ function EasyLoot_SlashCommand(msg)
 	local command = strlower(msg)
 	if (command == "options") then
 		InterfaceOptionsFrame_OpenToCategory(panelName);
-	elseif(command == "show") then
+	elseif((command == "show") or (command == "")) then
 		EasyLootFilter:Show()
 	else
 		EasyLootFilter:Hide()
