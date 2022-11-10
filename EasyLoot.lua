@@ -152,6 +152,31 @@ function EasyLoot_OnDragStop(self)
     EasyLootSettings.dispy = self:GetBottom();
 end
 
+function EasyLoot_IsAutoloot(lootName)
+    return EasyLoot_InTable(EasyLootLootList.autoloot, lootName)
+end
+
+function EasyLoot_NotIgnore(lootName, itemSubType)
+    return ((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and
+        (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)))
+end
+
+function EasyLoot_TableCheck(lootName, itemSubType)
+    return (EasyLoot_IsAutoloot(lootName) or EasyLoot_NotIgnore(lootName, itemSubType))
+end
+
+function EasyLoot_IsQuestItem(itemType)
+    return (EasyLootSettings.quest and (itemType == "Quest"))
+end
+
+function EasyLoot_IsGoodPrice(itemSellPrice)
+    return (itemSellPrice >= EasyLootLootList.EasyLootPriceLimit)
+end
+
+function EasyLoot_IsRareItem(rarity, i)
+    return ((rarity >= EasyLootSettings.rarity) or (not LootSlotIsItem(i)))
+end
+
 function EasyLoot_HandleLoot()
     local numItems = GetNumLootItems()
     -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot number of items:" .. numItems)
@@ -171,12 +196,21 @@ function EasyLoot_HandleLoot()
             --     print("|cffffff00Item: " .. itemName)
             -- end
         end
-        if(not locked and EasyLootSettings[GetLootMethod()] and (rarity >= EasyLootSettings.rarity or not LootSlotIsItem(i) or EasyLoot_InTable(EasyLootLootList.autoloot, lootName)) and not(EasyLoot_InTable(EasyLootLootList.ignore, lootName))) then
-            LootSlot(i)
-        elseif((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and
-                (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)) or
-                ((EasyLootSettings.quest and (itemType == "Quest")) or
-                (itemSellPrice >= EasyLootLootList.EasyLootPriceLimit))) then
+        -- print("looting:",
+        --         (not locked),
+        --         EasyLootSettings[GetLootMethod()],
+        --         EasyLoot_IsRareItem(rarity, i),
+        --         EasyLoot_IsAutoloot(lootName),
+        --         EasyLoot_NotIgnore(lootName),
+        --         EasyLoot_IsQuestItem(itemType),
+        --         EasyLoot_IsGoodPrice(itemSellPrice)
+        --     )
+
+        if (((not locked) and EasyLootSettings[GetLootMethod()]) and
+            (EasyLoot_IsRareItem(rarity, i) and
+            EasyLoot_TableCheck(lootName, itemSubType)) or
+            EasyLoot_IsQuestItem(itemType) or
+            EasyLoot_IsGoodPrice(itemSellPrice)) then
             LootSlot(i)
         end
     end
