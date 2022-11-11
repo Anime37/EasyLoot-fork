@@ -19,11 +19,12 @@ local function eventHandler(self, event, ...)
         if (arg1 == 0 and EasyLootSettings.enabled) then
             EasyLoot_HandleLoot()
         elseif (not EasyLootSettings.enabled) then
-            -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot disabled")
+        -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot disabled")
         end
     elseif (event == "BAG_UPDATE") then
-        if EasyLootLootList.destroygrey and EasyLootDestroyItem and
-            #EasyLootDestroyItem > 0 then EasyLoot_AutoDestroy() end
+        if EasyLootLootList.destroygrey and EasyLootDestroyItem and #EasyLootDestroyItem > 0 then
+            EasyLoot_AutoDestroy()
+        end
     elseif (event == "START_LOOT_ROLL") then
         if (EasyLootSettings.enabled) then
             local id, timer = ...
@@ -45,12 +46,10 @@ local function eventHandler(self, event, ...)
             EasyLoot_HandleConfirmation(id, rolltype)
         end
     elseif (event == "CHAT_MSG_LOOT") then
-        local message, sender, language, channelString, target, flags, _,
-              channelNumber, channelName, _, _ = ...
+        local message, sender, language, channelString, target, flags, _, channelNumber, channelName, _, _ = ...
         EasyLoot_HandleIncomingLoot(message)
     elseif (event == "VARIABLES_LOADED") then
-        EasyLootFilter:SetPoint("BOTTOMLEFT", "UIParent", "BOTTOMLEFT",
-                                EasyLootSettings.dispx, EasyLootSettings.dispy);
+        EasyLootFilter:SetPoint("BOTTOMLEFT", "UIParent", "BOTTOMLEFT", EasyLootSettings.dispx, EasyLootSettings.dispy)
         if (not (EasyLootLootList.greed)) then
             EasyLootLootList.greed = {}
             EasyLoot_GreedScrollBar_Update()
@@ -72,7 +71,9 @@ local function eventHandler(self, event, ...)
         if (not EasyLootLootList.DisenchantRarity) then
             EasyLootLootList.DisenchantRarity = -1
         end
-        if (not EasyLootLootList.iLevel) then EasyLootLootList.iLevel = 0 end
+        if (not EasyLootLootList.iLevel) then
+            EasyLootLootList.iLevel = 0
+        end
         if (not EasyLootLootList.EasyLootPriceLimit) then
             EasyLootLootList.EasyLootPriceLimit = 5000
         end
@@ -83,21 +84,21 @@ function EasyLoot_OnLoad(self)
     local version = GetAddOnMetadata("EasyLoot", "Version")
     EasyLoot_SetVariables()
     -- One of them allows EasyLoot to be closed with the Escape key
-    tinsert(UISpecialFrames, "EasyLootFilter");
-    UIPanelWindows["EasyLootFilter"] = nil;
+    tinsert(UISpecialFrames, "EasyLootFilter")
+    UIPanelWindows["EasyLootFilter"] = nil
 
     self:SetScript("OnEvent", eventHandler)
     self:RegisterEvent("VARIABLES_LOADED")
 
-    SlashCmdList["EASYLOOT"] = function(msg) EasyLoot_SlashCommand(msg) end
+    SlashCmdList["EASYLOOT"] = function(msg)
+        EasyLoot_SlashCommand(msg)
+    end
     SLASH_EASYLOOT1 = "/el"
 
     if (DEFAULT_CHAT_FRAME) then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot v" .. version ..
-                                          " loaded")
+        DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot v" .. version .. " loaded")
     end
-    UIErrorsFrame:AddMessage("EasyLoot v" .. version .. " AddOn loaded", 1.0,
-                             1.0, 1.0, 1.0, UIERRORS_HOLD_TIME)
+    UIErrorsFrame:AddMessage("EasyLoot v" .. version .. " AddOn loaded", 1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME)
     self:RegisterEvent("LOOT_OPENED")
     self:RegisterEvent("START_LOOT_ROLL")
     self:RegisterEvent("CONFIRM_LOOT_ROLL")
@@ -118,8 +119,8 @@ function EasyLoot_SetVariables()
         EasyLootSettings.master = true
         EasyLootSettings.group = true
         EasyLootSettings.needbeforegreed = true
-        EasyLootSettings.dispx = GetScreenWidth() / 2 - 200;
-        EasyLootSettings.dispy = GetScreenHeight() / 2 - 200;
+        EasyLootSettings.dispx = GetScreenWidth() / 2 - 200
+        EasyLootSettings.dispy = GetScreenHeight() / 2 - 200
     end
     if (not EasyLootLootList) then
         EasyLootLootList = {}
@@ -138,7 +139,7 @@ function EasyLoot_SlashCommand(msg)
     if (msg) then
         local command = strlower(msg)
         if (command == "options") then
-            InterfaceOptionsFrame_OpenToCategory(panelName);
+            InterfaceOptionsFrame_OpenToCategory(panelName)
         elseif ((command == "show") or (command == "")) then
             EasyLootFilter:Show()
         else
@@ -148,8 +149,8 @@ function EasyLoot_SlashCommand(msg)
 end
 
 function EasyLoot_OnDragStop(self)
-    EasyLootSettings.dispx = self:GetLeft();
-    EasyLootSettings.dispy = self:GetBottom();
+    EasyLootSettings.dispx = self:GetLeft()
+    EasyLootSettings.dispy = self:GetBottom()
 end
 
 function EasyLoot_IsAutoloot(lootName)
@@ -157,8 +158,7 @@ function EasyLoot_IsAutoloot(lootName)
 end
 
 function EasyLoot_NotIgnore(lootName, itemSubType)
-    return ((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and
-        (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)))
+    return ((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)))
 end
 
 function EasyLoot_TableCheck(lootName, itemSubType)
@@ -166,7 +166,16 @@ function EasyLoot_TableCheck(lootName, itemSubType)
 end
 
 function EasyLoot_IsQuestItem(itemType)
-    return (EasyLootSettings.quest and (itemType == "Quest"))
+    -- local _, numQuests = GetNumQuestLogEntries()
+    -- print("numrequireditems", numQuests)
+    if (EasyLootSettings.quest and (itemType == "Quest")) then
+        -- for i = 1, numQuests do
+        --     SelectQuestLogEntry(i)
+        --     name, a, b, c, usable = GetQuestItemInfo("required", 1)
+        --     print(i, "item:", name, a, b, c, usable)
+        -- end
+        return true
+    end
 end
 
 function EasyLoot_IsGoodPrice(itemSellPrice)
@@ -181,20 +190,17 @@ function EasyLoot_HandleLoot()
     local numItems = GetNumLootItems()
     -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot number of items:" .. numItems)
     for i = 1, numItems do
-        local lootIcon, lootName, lootQuantity, rarity, locked =
-            GetLootSlotInfo(i)
+        local lootIcon, lootName, lootQuantity, rarity, locked = GetLootSlotInfo(i)
         -- print("getting link")
         local itemLink = GetLootSlotLink(i)
-        local itemName, itemRarity, itemLevel, itemMinLevel, itemType,
-              itemSubType, itemStackCount, itemEquipLoc, itemTexture,
-              itemSellPrice
+        local itemName, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice
         if (itemLink) then
             itemName, _, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice =
                 GetItemInfo(itemLink)
-            -- print("trying to loot:", lootName, itemRarity, itemType, itemSubType, itemSellPrice, EasyLootLootList.EasyLootPriceLimit)
-            -- if(itemName) then
-            --     print("|cffffff00Item: " .. itemName)
-            -- end
+        -- print("trying to loot:", lootName, itemRarity, itemType, itemSubType, itemSellPrice, EasyLootLootList.EasyLootPriceLimit)
+        -- if(itemName) then
+        --     print("|cffffff00Item: " .. itemName)
+        -- end
         end
         -- print("looting:",
         --         (not locked),
@@ -206,29 +212,28 @@ function EasyLoot_HandleLoot()
         --         EasyLoot_IsGoodPrice(itemSellPrice)
         --     )
 
-        if (((not locked) and EasyLootSettings[GetLootMethod()]) and
-            (EasyLoot_IsRareItem(rarity, i) and
-            EasyLoot_TableCheck(lootName, itemSubType)) or
-            EasyLoot_IsQuestItem(itemType) or
-            EasyLoot_IsGoodPrice(itemSellPrice)) then
+        if
+            (((not locked) and EasyLootSettings[GetLootMethod()]) and (EasyLoot_IsRareItem(rarity, i) and EasyLoot_TableCheck(lootName, itemSubType)) or
+                EasyLoot_IsQuestItem(itemType) or
+                EasyLoot_IsGoodPrice(itemSellPrice))
+         then
             LootSlot(i)
         end
     end
 end
 
 function EasyLoot_HandleRoll(id)
-    local texture, name, count, quality, bindOnPickUp, canNeed, canGreed, canDE =
-        GetLootRollItemInfo(id)
+    local texture, name, count, quality, bindOnPickUp, canNeed, canGreed, canDE = GetLootRollItemInfo(id)
     local link = GetLootRollItemLink(id)
     local _, _, _, iLevel, _, _, _, _, _, _, _ = GetItemInfo(link)
     -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot item up for rolling: "..name.." Link: "..GetLootRollItemLink(id))
     if (EasyLoot_InTable(EasyLootLootList.need, name) and canNeed) then
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot item up for rolling: "..name.." canNeed: "..canNeed)
         RollOnLoot(id, 1)
-    elseif (canNeed and EasyLootSettings.atlasloot and
-        (AtlasLoot_CheckWishlistItem and AtlasLoot_CheckWishlistItem(
-            tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))),
-            GetUnitName("player")))) then
+    elseif
+        (canNeed and EasyLootSettings.atlasloot and
+            (AtlasLoot_CheckWishlistItem and AtlasLoot_CheckWishlistItem(tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))), GetUnitName("player"))))
+     then
         RollOnLoot(id, 1)
     elseif (EasyLoot_InTable(EasyLootLootList.greed, name)) then
         local index = EasyLoot_InTable(EasyLootLootList.greed, name)
@@ -243,8 +248,7 @@ function EasyLoot_HandleRoll(id)
         elseif (canDE) then
             RollOnLoot(id, 2)
         end
-    elseif (not (EasyLootLootList.greedonboe and not bindOnPickUp) and
-        EasyLootLootList.DisenchantRarity >= quality and canDE) then
+    elseif (not (EasyLootLootList.greedonboe and not bindOnPickUp) and EasyLootLootList.DisenchantRarity >= quality and canDE) then
         if (EasyLootLootList.DEbeforeGreed and canDE) then
             -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot item up for disenchanting due to quality: "..name.." canDE: "..canDE.." canNeed: "..canNeed)
             RollOnLoot(id, 3)
@@ -271,10 +275,10 @@ function EasyLoot_HandleConfirmation(id, rolltype)
     if (rolltype == 1 and EasyLoot_InTable(EasyLootLootList.need, name)) then
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot confirm "..name .." Need roll")
         ConfirmLootRoll(id, rolltype)
-    elseif (EasyLootSettings.atlasloot and rolltype == 1 and
-        AtlasLoot_CheckWishlistItem and AtlasLoot_CheckWishlistItem(
-        tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))),
-        GetUnitName("player"))) then
+    elseif
+        (EasyLootSettings.atlasloot and rolltype == 1 and AtlasLoot_CheckWishlistItem and
+            AtlasLoot_CheckWishlistItem(tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))), GetUnitName("player")))
+     then
         ConfirmLootRoll(id, rolltype)
     elseif (rolltype == 2 and EasyLoot_InTable(EasyLootLootList.greed, name)) then
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot confirm "..name .." Greed roll")
@@ -287,8 +291,7 @@ function EasyLoot_HandleConfirmation(id, rolltype)
                 ConfirmLootRoll(id, rolltype)
             end
         end
-    elseif ((rolltype == 3 or rolltype == 2) and
-        not EasyLoot_InTable(EasyLootLootList.greed, name)) then
+    elseif ((rolltype == 3 or rolltype == 2) and not EasyLoot_InTable(EasyLootLootList.greed, name)) then
         if (EasyLootLootList.DisenchantRarity >= quality) then
             -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot confirm "..name .." DE roll")
             ConfirmLootRoll(id, rolltype)
@@ -301,8 +304,7 @@ function EasyLoot_HandleConfirmation(id, rolltype)
 end
 
 function EasyLoot_HandleBoP(slotId)
-    local lootIcon, lootName, lootQuantity, rarity, locked = GetLootSlotInfo(
-                                                                 slotId)
+    local lootIcon, lootName, lootQuantity, rarity, locked = GetLootSlotInfo(slotId)
     if EasyLoot_InTable(EasyLootLootList.autoloot, lootName) then
         ConfirmLootSlot(slotId)
     end
@@ -310,8 +312,7 @@ end
 
 function EasyLoot_HandleIncomingLoot(message)
     for i = 1, #(EasyLootLootList.need), 1 do
-        if (strmatch(message,
-                     "You receive .*" .. EasyLootLootList.need[i] .. ".*")) then
+        if (strmatch(message, "You receive .*" .. EasyLootLootList.need[i] .. ".*")) then
             -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Match need")
             if (not EasyLootLootList.needkeep[i]) then
                 tremove(EasyLootLootList.need, i)
@@ -342,11 +343,8 @@ function EasyLoot_HandleIncomingLoot(message)
 
     if AtlasLoot_CheckWishlistItem and AtlasLoot_GetWishLists then
         if AtlasLoot_GetWishLists(GetUnitName("player")) then
-            local _, _, _, itemId = string.find(message,
-                                                "^You receive loot: |?c?f?f?(.*)|Hitem:(%d+):.*:.*:.*:.*:.*:.*:.*:.*|.*$")
-            if itemId and
-                AtlasLoot_CheckWishlistItem(tonumber(itemId),
-                                            GetUnitName("player")) then
+            local _, _, _, itemId = string.find(message, "^You receive loot: |?c?f?f?(.*)|Hitem:(%d+):.*:.*:.*:.*:.*:.*:.*:.*|.*$")
+            if itemId and AtlasLoot_CheckWishlistItem(tonumber(itemId), GetUnitName("player")) then
                 -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Matched AtlasLoot "..itemId)
                 AtlasLoot_DeleteFromWishList(tonumber(itemID))
             end
@@ -354,25 +352,19 @@ function EasyLoot_HandleIncomingLoot(message)
     end
 
     if EasyLootLootList.destroygrey then
-        local _, _, _, itemId = string.find(message,
-                                            "^You receive loot: |?c?f?f?(.*)|Hitem:(%d+):.*:.*:.*:.*:.*:.*:.*:.*|.*$")
+        local _, _, _, itemId = string.find(message, "^You receive loot: |?c?f?f?(.*)|Hitem:(%d+):.*:.*:.*:.*:.*:.*:.*:.*|.*$")
         if (itemId) then
-            local name, link, quality, iLevel, reqLevel, class, subclass,
-                  maxStack, equipSlot, texture, vendorPrice =
-                GetItemInfo(itemId)
-            if quality == 0 and EasyLootLootList.EasyLootPriceLimit >
-                vendorPrice then
+            local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemId)
+            if quality == 0 and EasyLootLootList.EasyLootPriceLimit > vendorPrice then
                 -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Destroy grey: "..itemId..", quality:"..quality)
-                EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(
-                                                                      itemId)
+                EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
             end
         end
     end
 
     if EasyLootLootList.destroy and #EasyLootLootList.destroy > 0 then
-        local _, _, _, _, itemId, _, _, _, _, _, _, _, _, name = string.find(
-                                                                     message,
-                                                                     "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+        local _, _, _, _, itemId, _, _, _, _, _, _, _, _, name =
+            string.find(message, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Destroy item: "..name)
         if EasyLoot_InTable(EasyLootLootList.destroy, name) then
             EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
@@ -385,9 +377,7 @@ function EasyLoot_AutoDestroy()
         x = GetContainerNumSlots(i)
         for j = 0, x, 1 do
             if GetContainerItemID(i, j) then
-                local tableIndex = EasyLoot_InTable(EasyLootDestroyItem,
-                                                    tonumber(
-                                                        GetContainerItemID(i, j)))
+                local tableIndex = EasyLoot_InTable(EasyLootDestroyItem, tonumber(GetContainerItemID(i, j)))
                 if tableIndex then
                     PickupContainerItem(i, j)
                     if CursorHasItem() then
@@ -407,8 +397,7 @@ function EasyLoot_ConfigLoadOrCancel()
     EasyLootConfigFrameRoundRobin:SetChecked(EasyLootSettings.roundrobin)
     EasyLootConfigFrameMaster:SetChecked(EasyLootSettings.master)
     EasyLootConfigFrameGroup:SetChecked(EasyLootSettings.group)
-    EasyLootConfigFrameNeedBeforeGreed:SetChecked(
-        EasyLootSettings.needbeforegreed)
+    EasyLootConfigFrameNeedBeforeGreed:SetChecked(EasyLootSettings.needbeforegreed)
     EasyLootConfigFrameQuest:SetChecked(EasyLootSettings.quest)
     EasyLootConfigFrameAtlasLoot:SetChecked(EasyLootSettings.atlasloot)
 end
@@ -416,9 +405,13 @@ end
 function EasyLootConfigFrame_OnLoad(panel)
     panelName = "EasyLoot " .. GetAddOnMetadata("EasyLoot", "Version")
     panel.name = panelName
-    panel.okay = function(self) EasyLootConfig_Ok() end
-    panel.cancel = function(self) EasyLoot_ConfigLoadOrCancel() end
-    InterfaceOptions_AddCategory(panel);
+    panel.okay = function(self)
+        EasyLootConfig_Ok()
+    end
+    panel.cancel = function(self)
+        EasyLoot_ConfigLoadOrCancel()
+    end
+    InterfaceOptions_AddCategory(panel)
     if (AtlasLoot_CheckWishlistItem) then
         EasyLootConfigFrameAtlasLoot:Show()
     else
@@ -432,8 +425,7 @@ function EasyLootConfig_Ok()
     EasyLootSettings.roundrobin = EasyLootConfigFrameRoundRobin:GetChecked()
     EasyLootSettings.master = EasyLootConfigFrameMaster:GetChecked()
     EasyLootSettings.group = EasyLootConfigFrameGroup:GetChecked()
-    EasyLootSettings.needbeforegreed =
-        EasyLootConfigFrameNeedBeforeGreed:GetChecked()
+    EasyLootSettings.needbeforegreed = EasyLootConfigFrameNeedBeforeGreed:GetChecked()
     EasyLootSettings.quest = EasyLootConfigFrameQuest:GetChecked()
     EasyLootSettings.atlasloot = EasyLootConfigFrameAtlasLoot:GetChecked()
 end
@@ -445,24 +437,21 @@ function EasyLoot_RarityDropdown_OnClick(self)
 end
 
 function EasyLoot_RarityDropdown_OnShow()
-    UIDropDownMenu_Initialize(EasyLootConfigFrameComboRarity,
-                              EasyLoot_RarityDropdown_Initialize)
-    UIDropDownMenu_SetSelectedID(EasyLootConfigFrameComboRarity,
-                                 EasyLootSettings.rarity + 1)
+    UIDropDownMenu_Initialize(EasyLootConfigFrameComboRarity, EasyLoot_RarityDropdown_Initialize)
+    UIDropDownMenu_SetSelectedID(EasyLootConfigFrameComboRarity, EasyLootSettings.rarity + 1)
 end
 
 function EasyLoot_RarityDropdown_Initialize()
-    local i;
+    local i
     if (#(easyLootLevels) > 0) then
         for i = 1, #(easyLootLevels), 1 do
-            local redComponent, greenComponent, blueComponent, hexColor =
-                GetItemQualityColor(i - 1)
+            local redComponent, greenComponent, blueComponent, hexColor = GetItemQualityColor(i - 1)
             info = {
                 text = hexColor .. easyLootLevels[i],
                 func = EasyLoot_RarityDropdown_OnClick
-            };
-            UIDropDownMenu_AddButton(info);
-            i = i + 1;
+            }
+            UIDropDownMenu_AddButton(info)
+            i = i + 1
         end
     end
 end
@@ -481,23 +470,19 @@ function EasyLoot_DisenchantRarityDropdown_OnShow()
     if (not EasyLootLootList.DisenchantRarity) then
         EasyLootLootList.DisenchantRarity = -1
     end
-    UIDropDownMenu_Initialize(EasyLootFilterDisenchantComboRarity,
-                              EasyLoot_DisenchantRarityDropdown_Initialize)
+    UIDropDownMenu_Initialize(EasyLootFilterDisenchantComboRarity, EasyLoot_DisenchantRarityDropdown_Initialize)
     if (EasyLootLootList.DisenchantRarity == -1) then
-        UIDropDownMenu_SetSelectedID(EasyLootFilterDisenchantComboRarity,
-                                     #(easyLootLevels) + 1)
+        UIDropDownMenu_SetSelectedID(EasyLootFilterDisenchantComboRarity, #(easyLootLevels) + 1)
     else
-        UIDropDownMenu_SetSelectedID(EasyLootFilterDisenchantComboRarity,
-                                     EasyLootLootList.DisenchantRarity + 1)
+        UIDropDownMenu_SetSelectedID(EasyLootFilterDisenchantComboRarity, EasyLootLootList.DisenchantRarity + 1)
     end
 end
 
 function EasyLoot_DisenchantRarityDropdown_Initialize()
-    local i;
+    local i
     if (#(easyLootLevels) > 0) then
         for i = 1, #(easyLootLevels) + 1, 1 do
-            local redComponent, greenComponent, blueComponent, hexColor =
-                GetItemQualityColor(i - 1)
+            local redComponent, greenComponent, blueComponent, hexColor = GetItemQualityColor(i - 1)
             local tempText
             if (i > #(easyLootLevels)) then
                 tempText = hexColor .. "Disabled"
@@ -522,7 +507,9 @@ function EasyLoot_InTable2(t, val)
         else
             localValue = t[i]
         end
-        if localValue == val then return i end
+        if localValue == val then
+            return i
+        end
     end
     return false
 end
@@ -535,7 +522,9 @@ function EasyLoot_InTable(t, val)
         else
             localValue = v
         end
-        if localValue == val then return index end
+        if localValue == val then
+            return index
+        end
     end
     return false
 end
@@ -543,17 +532,12 @@ end
 function EasyLoot_AutoLootScrollBar_Update()
     local line
     local lineplusoffset
-    FauxScrollFrame_Update(EasyLootFilterAutoLootScrollFrame,
-                           #(EasyLootLootList.autoloot), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterAutoLootScrollFrame, #(EasyLootLootList.autoloot), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(
-                                 EasyLootFilterAutoLootScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterAutoLootScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.autoloot) then
             if (strlen(EasyLootLootList.autoloot[lineplusoffset]) > 12) then
-                text =
-                    strsub(EasyLootLootList.autoloot[lineplusoffset], 1, 12) ..
-                        "..."
+                text = strsub(EasyLootLootList.autoloot[lineplusoffset], 1, 12) .. "..."
             else
                 text = EasyLootLootList.autoloot[lineplusoffset]
             end
@@ -568,16 +552,12 @@ end
 function EasyLoot_IgnoreScrollBar_Update()
     local line
     local lineplusoffset
-    FauxScrollFrame_Update(EasyLootFilterIgnoreScrollFrame,
-                           #(EasyLootLootList.ignore), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterIgnoreScrollFrame, #(EasyLootLootList.ignore), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(
-                                 EasyLootFilterIgnoreScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterIgnoreScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.ignore) then
             if (strlen(EasyLootLootList.ignore[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.ignore[lineplusoffset], 1, 12) ..
-                           "..."
+                text = strsub(EasyLootLootList.ignore[lineplusoffset], 1, 12) .. "..."
             else
                 text = EasyLootLootList.ignore[lineplusoffset]
             end
@@ -592,17 +572,12 @@ end
 function EasyLoot_IgnoreTypeScrollBar_Update()
     local line
     local lineplusoffset
-    FauxScrollFrame_Update(EasyLootFilterIgnoreTypeScrollFrame,
-                           #(EasyLootLootList.ignoretype), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterIgnoreTypeScrollFrame, #(EasyLootLootList.ignoretype), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(
-                                 EasyLootFilterIgnoreTypeScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterIgnoreTypeScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.ignoretype) then
             if (strlen(EasyLootLootList.ignoretype[lineplusoffset]) > 12) then
-                text =
-                    strsub(EasyLootLootList.ignoretype[lineplusoffset], 1, 12) ..
-                        "..."
+                text = strsub(EasyLootLootList.ignoretype[lineplusoffset], 1, 12) .. "..."
             else
                 text = EasyLootLootList.ignoretype[lineplusoffset]
             end
@@ -617,18 +592,15 @@ end
 function EasyLoot_DestroyScrollBar_Update()
     local line
     local lineplusoffset
-    if (not EasyLootLootList.destroy) then EasyLootLootList.destroy = {} end
-    FauxScrollFrame_Update(EasyLootFilterDestroyScrollFrame,
-                           #(EasyLootLootList.destroy), 5, 16)
+    if (not EasyLootLootList.destroy) then
+        EasyLootLootList.destroy = {}
+    end
+    FauxScrollFrame_Update(EasyLootFilterDestroyScrollFrame, #(EasyLootLootList.destroy), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(
-                                 EasyLootFilterDestroyScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterDestroyScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.destroy) then
             if (strlen(EasyLootLootList.destroy[lineplusoffset]) > 12) then
-                text =
-                    strsub(EasyLootLootList.destroy[lineplusoffset], 1, 12) ..
-                        "..."
+                text = strsub(EasyLootLootList.destroy[lineplusoffset], 1, 12) .. "..."
             else
                 text = EasyLootLootList.destroy[lineplusoffset]
             end
@@ -643,21 +615,19 @@ end
 function EasyLoot_NeedScrollBar_Update()
     local line
     local lineplusoffset
-    FauxScrollFrame_Update(EasyLootFilterNeedScrollFrame,
-                           #(EasyLootLootList.need), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterNeedScrollFrame, #(EasyLootLootList.need), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(
-                                 EasyLootFilterNeedScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.need) then
             if (strlen(EasyLootLootList.need[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.need[lineplusoffset], 1, 12) ..
-                           "..."
+                text = strsub(EasyLootLootList.need[lineplusoffset], 1, 12) .. "..."
             else
                 text = EasyLootLootList.need[lineplusoffset]
             end
             local keep = EasyLootLootList.needkeep[lineplusoffset]
-            if (not keep) then keep = false end
+            if (not keep) then
+                keep = false
+            end
             _G["EasyLootNeedEntry" .. line]:SetText(text)
             _G["EasyLootNeedEntry" .. line]:Show()
             _G["EasyLootNeedPermanent" .. line]:SetChecked(keep)
@@ -674,12 +644,9 @@ function EasyLoot_GreedScrollBar_Update()
     local lineplusoffset
     local name
     local disenchant
-    FauxScrollFrame_Update(EasyLootFilterGreedScrollFrame,
-                           #(EasyLootLootList.greed), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterGreedScrollFrame, #(EasyLootLootList.greed), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(
-                                 EasyLootFilterGreedScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.greed) then
             if (type(EasyLootLootList.greed[lineplusoffset]) == "table") then
                 name = EasyLootLootList.greed[lineplusoffset].name
@@ -694,7 +661,9 @@ function EasyLoot_GreedScrollBar_Update()
                 text = name
             end
             local keep = EasyLootLootList.greedkeep[lineplusoffset]
-            if (not keep) then keep = false end
+            if (not keep) then
+                keep = false
+            end
             _G["EasyLootGreedEntry" .. line]:SetText(text)
             _G["EasyLootGreedEntry" .. line]:Show()
             _G["EasyLootGreedPermanent" .. line]:SetChecked(keep)
@@ -816,15 +785,15 @@ function EasyLoot_SetHook()
 end
 
 function EasyLoot_GetItemId(link)
-    local _, _, _, _, itemId, _, _, _, _, _, _, _, _, _ = string.find(link,
-                                                                      "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+    local _, _, _, _, itemId, _, _, _, _, _, _, _, _, _ =
+        string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
     return itemId
 end
 
 function EasyLoot_InsertLink(text)
     -- DEFAULT_CHAT_FRAME:AddMessage(text)
-    local _, _, _, _, _, _, _, _, _, _, _, _, _, Name = string.find(text,
-                                                                    "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+    local _, _, _, _, _, _, _, _, _, _, _, _, _, Name =
+        string.find(text, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
     EasyLootFilterItem:SetText(Name)
     return true
 end
@@ -851,7 +820,9 @@ end
 
 function EasyLoot_AddDestroy()
     local itemName = EasyLootFilterItem:GetText()
-    if not EasyLootLootList.destroy then EasyLootLootList.destroy = {} end
+    if not EasyLootLootList.destroy then
+        EasyLootLootList.destroy = {}
+    end
     if (itemName and not (itemName == "")) then
         EasyLootLootList.destroy[#(EasyLootLootList.destroy) + 1] = itemName
         EasyLoot_DestroyScrollBar_Update()
@@ -889,8 +860,7 @@ function EasyLoot_AddIgnoreType()
     if (itemName and not (itemName == "")) then
         _, _, _, _, _, itemType, itemSubType, _, _, _, _ = GetItemInfo(itemName)
         if (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)) then
-            EasyLootLootList.ignoretype[#(EasyLootLootList.ignoretype) + 1] =
-                itemSubType
+            EasyLootLootList.ignoretype[#(EasyLootLootList.ignoretype) + 1] = itemSubType
             EasyLoot_IgnoreTypeScrollBar_Update()
             EasyLootFilterItem:SetText("")
         end
@@ -909,18 +879,17 @@ end
 function EasyLoot_SearchUpdate()
     -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Search: "..EasyLootSearchText:GetText())
     EasyLootSearchItemHits = {}
-    for i = 1, 6, 1 do _G["EasyLootItem" .. i]:Hide() end
+    for i = 1, 6, 1 do
+        _G["EasyLootItem" .. i]:Hide()
+    end
     for i = 0, 4, 1 do
         x = GetContainerNumSlots(i)
         for j = 0, x, 1 do
             if GetContainerItemID(i, j) and #EasyLootSearchText:GetText() > 0 then
                 name = GetItemInfo(GetContainerItemID(i, j))
-                if (string.find(string.lower(name), ".*" ..
-                                    string.lower(EasyLootSearchText:GetText()) ..
-                                    ".*")) then
+                if (string.find(string.lower(name), ".*" .. string.lower(EasyLootSearchText:GetText()) .. ".*")) then
                     -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Match "..name)
-                    EasyLootSearchItemHits[(#(EasyLootSearchItemHits) or 0) + 1] =
-                        {GetContainerItemID(i, j), i, j}
+                    EasyLootSearchItemHits[(#(EasyLootSearchItemHits) or 0) + 1] = {GetContainerItemID(i, j), i, j}
                 end
             end
         end
@@ -930,8 +899,7 @@ function EasyLoot_SearchUpdate()
             if EasyLootSearchItemHits and i <= #EasyLootSearchItemHits then
                 itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice =
                     GetItemInfo(EasyLootSearchItemHits[i][1])
-                _, count = GetContainerItemInfo(EasyLootSearchItemHits[i][2],
-                                                EasyLootSearchItemHits[i][3])
+                _, count = GetContainerItemInfo(EasyLootSearchItemHits[i][2], EasyLootSearchItemHits[i][3])
                 _G["EasyLootItem" .. i]:SetNormalTexture(itemTexture)
                 _G["EasyLootItem" .. i .. "Text"]:SetText(count)
                 _G["EasyLootItem" .. i]:Show()
@@ -947,17 +915,13 @@ function EasyLoot_ItemClicked(self)
     if line and EasyLootSearchItemHits and EasyLootSearchItemHits[line] then
         if IsShiftKeyDown() then
             itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice =
-                GetItemInfo(EasyLootSearchItemHits[line +
-                                FauxScrollFrame_GetOffset(
-                                    EasyLootSearchScrollFrame)][1])
+                GetItemInfo(EasyLootSearchItemHits[line + FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)][1])
             EasyLootFilterItem:SetText(itemName)
         else
-            PickupContainerItem(EasyLootSearchItemHits[line +
-                                    FauxScrollFrame_GetOffset(
-                                        EasyLootSearchScrollFrame)][2],
-                                EasyLootSearchItemHits[line +
-                                    FauxScrollFrame_GetOffset(
-                                        EasyLootSearchScrollFrame)][3])
+            PickupContainerItem(
+                EasyLootSearchItemHits[line + FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)][2],
+                EasyLootSearchItemHits[line + FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)][3]
+            )
         end
     end
 end
@@ -967,26 +931,24 @@ function EasyLoot_ItemEnter(self)
     local line = tonumber(strmatch(name, "%d"))
     if line and EasyLootSearchItemHits and EasyLootSearchItemHits[line] then
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetBagItem(EasyLootSearchItemHits[line +
-                                   FauxScrollFrame_GetOffset(
-                                       EasyLootSearchScrollFrame)][2],
-                               EasyLootSearchItemHits[line +
-                                   FauxScrollFrame_GetOffset(
-                                       EasyLootSearchScrollFrame)][3])
+        GameTooltip:SetBagItem(
+            EasyLootSearchItemHits[line + FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)][2],
+            EasyLootSearchItemHits[line + FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)][3]
+        )
         GameTooltip:Show()
     end
 end
 
-function EasyLoot_ItemLeave(self) GameTooltip:Hide() end
+function EasyLoot_ItemLeave(self)
+    GameTooltip:Hide()
+end
 
 function EasyLoot_SearchScrollBar_Update()
     local line
     local lineplusoffset
-    FauxScrollFrame_Update(EasyLootSearchScrollFrame, #(EasyLootSearchItemHits),
-                           6, 64)
+    FauxScrollFrame_Update(EasyLootSearchScrollFrame, #(EasyLootSearchItemHits), 6, 64)
     for line = 1, 6 do
-        lineplusoffset = line +
-                             FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootSearchScrollFrame)
         if lineplusoffset <= #(EasyLootSearchItemHits) then
             itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice =
                 GetItemInfo(EasyLootSearchItemHits[lineplusoffset][1])
