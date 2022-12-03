@@ -19,7 +19,7 @@ local function eventHandler(self, event, ...)
         if (arg1 == 0 and EasyLootSettings.enabled) then
             EasyLoot_HandleLoot()
         elseif (not EasyLootSettings.enabled) then
-        -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot disabled")
+            -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot disabled")
         end
     elseif (event == "BAG_UPDATE") then
         if EasyLootLootList.destroygrey and EasyLootDestroyItem and #EasyLootDestroyItem > 0 then
@@ -121,6 +121,7 @@ function EasyLoot_SetVariables()
         EasyLootSettings.needbeforegreed = true
         EasyLootSettings.dispx = GetScreenWidth() / 2 - 200
         EasyLootSettings.dispy = GetScreenHeight() / 2 - 200
+        EasyLootSettings.debug = false
     end
     if (not EasyLootLootList) then
         EasyLootLootList = {}
@@ -133,6 +134,10 @@ function EasyLoot_SetVariables()
         EasyLootLootList.greedkeep = {}
         EasyLootLootList.destroy = {}
     end
+end
+
+function IsDebug()
+    return EasyLootSettings.debug
 end
 
 function EasyLoot_SlashCommand(msg)
@@ -165,21 +170,27 @@ function EasyLoot_TableCheck(lootName, itemSubType)
     return (EasyLoot_IsAutoloot(lootName) or EasyLoot_NotIgnore(lootName, itemSubType))
 end
 
-function EasyLoot_IsQuestItem(itemType)
+function EasyLoot_IsQuestItem(itemLink, itemType)
+    if (not itemLink) then
+        return false
+    end
     -- local _, numQuests = GetNumQuestLogEntries()
-    -- print("numrequireditems", numQuests)
+    -- local itemNum = EasyLoot_GetItemId(itemLink)
+    -- print("numrequireditems", numQuests, itemNum, itemType)
     if (EasyLootSettings.quest and (itemType == "Quest")) then
-        -- for i = 1, numQuests do
-        --     SelectQuestLogEntry(i)
-        --     name, a, b, c, usable = GetQuestItemInfo("required", 1)
-        --     print(i, "item:", name, a, b, c, usable)
-        -- end
+        -- name, a, b, c, usable = GetQuestItemInfo("required", itemNum)
+        -- print(i, "item:", name, a, b, c, usable)
         return true
     end
+    return false
 end
 
 function EasyLoot_IsGoodPrice(itemSellPrice)
-    return (itemSellPrice >= EasyLootLootList.EasyLootPriceLimit)
+    if (itemSellPrice) then
+        return (itemSellPrice >= EasyLootLootList.EasyLootPriceLimit)
+    else
+        return false
+    end
 end
 
 function EasyLoot_IsRareItem(rarity, i)
@@ -191,32 +202,32 @@ function EasyLoot_HandleLoot()
     -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot number of items:" .. numItems)
     for i = 1, numItems do
         local lootIcon, lootName, lootQuantity, rarity, locked = GetLootSlotInfo(i)
-        -- print("getting link")
         local itemLink = GetLootSlotLink(i)
         local itemName, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice
         if (itemLink) then
             itemName, _, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice =
                 GetItemInfo(itemLink)
-        -- print("trying to loot:", lootName, itemRarity, itemType, itemSubType, itemSellPrice, EasyLootLootList.EasyLootPriceLimit)
-        -- if(itemName) then
-        --     print("|cffffff00Item: " .. itemName)
-        -- end
+            if (IsDebug()) then
+                print("trying to loot:", lootName, itemRarity, itemType, itemSubType, itemSellPrice,
+                    EasyLootLootList.EasyLootPriceLimit)
+            end
         end
-        -- print("looting:",
-        --         (not locked),
-        --         EasyLootSettings[GetLootMethod()],
-        --         EasyLoot_IsRareItem(rarity, i),
-        --         EasyLoot_IsAutoloot(lootName),
-        --         EasyLoot_NotIgnore(lootName),
-        --         EasyLoot_IsQuestItem(itemType),
-        --         EasyLoot_IsGoodPrice(itemSellPrice)
-        --     )
-
-        if
-            (((not locked) and EasyLootSettings[GetLootMethod()]) and (EasyLoot_IsRareItem(rarity, i) and EasyLoot_TableCheck(lootName, itemSubType)) or
-                EasyLoot_IsQuestItem(itemType) or
-                EasyLoot_IsGoodPrice(itemSellPrice))
-         then
+        if (IsDebug()) then
+            print("looting:",
+                (not locked),
+                EasyLootSettings[GetLootMethod()],
+                EasyLoot_IsRareItem(rarity, i),
+                EasyLoot_IsAutoloot(lootName),
+                EasyLoot_NotIgnore(lootName),
+                EasyLoot_IsQuestItem(itemLink, itemType),
+                EasyLoot_IsGoodPrice(itemSellPrice)
+            )
+        end
+        if (((not locked) and EasyLootSettings[GetLootMethod()]) and
+            (EasyLoot_IsRareItem(rarity, i) and
+            EasyLoot_TableCheck(lootName, itemSubType)) or
+            EasyLoot_IsQuestItem(itemLink, itemType) or
+            EasyLoot_IsGoodPrice(itemSellPrice)) then
             LootSlot(i)
         end
     end
@@ -230,10 +241,10 @@ function EasyLoot_HandleRoll(id)
     if (EasyLoot_InTable(EasyLootLootList.need, name) and canNeed) then
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot item up for rolling: "..name.." canNeed: "..canNeed)
         RollOnLoot(id, 1)
-    elseif
-        (canNeed and EasyLootSettings.atlasloot and
-            (AtlasLoot_CheckWishlistItem and AtlasLoot_CheckWishlistItem(tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))), GetUnitName("player"))))
-     then
+    elseif (canNeed and EasyLootSettings.atlasloot and
+        (AtlasLoot_CheckWishlistItem and
+        AtlasLoot_CheckWishlistItem(tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))), GetUnitName("player"))))
+    then
         RollOnLoot(id, 1)
     elseif (EasyLoot_InTable(EasyLootLootList.greed, name)) then
         local index = EasyLoot_InTable(EasyLootLootList.greed, name)
@@ -276,9 +287,9 @@ function EasyLoot_HandleConfirmation(id, rolltype)
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot confirm "..name .." Need roll")
         ConfirmLootRoll(id, rolltype)
     elseif
-        (EasyLootSettings.atlasloot and rolltype == 1 and AtlasLoot_CheckWishlistItem and
-            AtlasLoot_CheckWishlistItem(tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))), GetUnitName("player")))
-     then
+    (EasyLootSettings.atlasloot and rolltype == 1 and AtlasLoot_CheckWishlistItem and
+        AtlasLoot_CheckWishlistItem(tonumber(EasyLoot_GetItemId(GetLootRollItemLink(id))), GetUnitName("player")))
+    then
         ConfirmLootRoll(id, rolltype)
     elseif (rolltype == 2 and EasyLoot_InTable(EasyLootLootList.greed, name)) then
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot confirm "..name .." Greed roll")
@@ -400,6 +411,7 @@ function EasyLoot_ConfigLoadOrCancel()
     EasyLootConfigFrameNeedBeforeGreed:SetChecked(EasyLootSettings.needbeforegreed)
     EasyLootConfigFrameQuest:SetChecked(EasyLootSettings.quest)
     EasyLootConfigFrameAtlasLoot:SetChecked(EasyLootSettings.atlasloot)
+    EasyLootConfigFrameDebug:SetChecked(EasyLootSettings.debug)
 end
 
 function EasyLootConfigFrame_OnLoad(panel)
@@ -428,6 +440,7 @@ function EasyLootConfig_Ok()
     EasyLootSettings.needbeforegreed = EasyLootConfigFrameNeedBeforeGreed:GetChecked()
     EasyLootSettings.quest = EasyLootConfigFrameQuest:GetChecked()
     EasyLootSettings.atlasloot = EasyLootConfigFrameAtlasLoot:GetChecked()
+    EasyLootSettings.debug = EasyLootConfigFrameDebug:GetChecked()
 end
 
 function EasyLoot_RarityDropdown_OnClick(self)
@@ -785,6 +798,7 @@ function EasyLoot_SetHook()
 end
 
 function EasyLoot_GetItemId(link)
+    print(link)
     local _, _, _, _, itemId, _, _, _, _, _, _, _, _, _ =
         string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
     return itemId

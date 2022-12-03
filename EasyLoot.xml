@@ -316,6 +316,31 @@
 					</Anchor>
 				</Anchors>
 			</CheckButton>
+      <CheckButton name="$parentDebug" inherits="OptionsCheckButtonTemplate"
+        checked="true">
+        <Layers>
+          <Layer level="BACKGROUND">
+            <FontString name="$parentLabel" inherits="GameFontNormal"
+              text="Debug mode">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativePoint="TOPRIGHT">
+                  <Offset>
+                    <AbsDimension x="5" y="-5" />
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentQuest"
+            relativePoint="BOTTOMLEFT">
+            <Offset>
+              <AbsDimension x="0" y="10" />
+            </Offset>
+          </Anchor>
+        </Anchors>
+      </CheckButton>
 			<Button name="$parentComboRarity" inherits="UIDropDownMenuTemplate">
 				<Layers>
 					<Layer level="BACKGROUND">
