@@ -13,6 +13,18 @@ local panelName
 local EasyLootDestroyItem = {}
 local EasyLootSearchItemHits = {}
 
+local MAX_ENTRY_LEN = 20
+
+local function _is_debug()
+    return EasyLootSettings.debug
+end
+
+local function debug_print(...)
+    if (_is_debug()) then
+        print(...)
+    end
+end
+
 local function eventHandler(self, event, ...)
     if (event == "LOOT_OPENED") then
         local arg1 = ...
@@ -25,21 +37,21 @@ local function eventHandler(self, event, ...)
         if EasyLootLootList.destroygrey and EasyLootDestroyItem and #EasyLootDestroyItem > 0 then
             EasyLoot_AutoDestroy()
         end
-    elseif (event == "START_LOOT_ROLL") then
-        if (EasyLootSettings.enabled) then
-            local id, timer = ...
-            EasyLoot_HandleRoll(id)
-        end
-    elseif (event == "CONFIRM_LOOT_ROLL") then
-        if (EasyLootSettings.enabled) then
-            local id, rolltype = ...
-            EasyLoot_HandleConfirmation(id, rolltype)
-        end
-    elseif (event == "LOOT_BIND_CONFIRM") then
-        if (EasyLootSettings.enabled) then
-            local slotId = ...
-            EasyLoot_HandleBoP(slotId)
-        end
+    -- elseif (event == "START_LOOT_ROLL") then
+    --     if (EasyLootSettings.enabled) then
+    --         local id, timer = ...
+    --         EasyLoot_HandleRoll(id)
+    --     end
+    -- elseif (event == "CONFIRM_LOOT_ROLL") then
+    --     if (EasyLootSettings.enabled) then
+    --         local id, rolltype = ...
+    --         EasyLoot_HandleConfirmation(id, rolltype)
+    --     end
+    -- elseif (event == "LOOT_BIND_CONFIRM") then
+    --     if (EasyLootSettings.enabled) then
+    --         local slotId = ...
+    --         EasyLoot_HandleBoP(slotId)
+    --     end
     elseif (event == "CONFIRM_DISENCHANT_ROLL") then
         if (EasyLootSettings.enabled) then
             local id, rolltype = ...
@@ -50,24 +62,24 @@ local function eventHandler(self, event, ...)
         EasyLoot_HandleIncomingLoot(message)
     elseif (event == "VARIABLES_LOADED") then
         EasyLootFilter:SetPoint("BOTTOMLEFT", "UIParent", "BOTTOMLEFT", EasyLootSettings.dispx, EasyLootSettings.dispy)
-        if (not (EasyLootLootList.greed)) then
-            EasyLootLootList.greed = {}
-            EasyLoot_GreedScrollBar_Update()
-        end
-        if (not (EasyLootLootList.greedkeep)) then
-            EasyLootLootList.greedkeep = {}
-            for i = 1, #(EasyLootLootList.greed), 1 do
-                EasyLootLootList.greedkeep[i] = false
-            end
-            EasyLoot_GreedScrollBar_Update()
-        end
-        if (not (EasyLootLootList.needkeep)) then
-            EasyLootLootList.needkeep = {}
-            for i = 1, #(EasyLootLootList.need), 1 do
-                EasyLootLootList.needkeep[i] = false
-            end
-            EasyLoot_NeedScrollBar_Update()
-        end
+        -- if (not (EasyLootLootList.greed)) then
+        --     EasyLootLootList.greed = {}
+        --     EasyLoot_GreedScrollBar_Update()
+        -- end
+        -- if (not (EasyLootLootList.greedkeep)) then
+        --     EasyLootLootList.greedkeep = {}
+        --     for i = 1, #(EasyLootLootList.greed), 1 do
+        --         EasyLootLootList.greedkeep[i] = false
+        --     end
+        --     EasyLoot_GreedScrollBar_Update()
+        -- end
+        -- if (not (EasyLootLootList.needkeep)) then
+        --     EasyLootLootList.needkeep = {}
+        --     for i = 1, #(EasyLootLootList.need), 1 do
+        --         EasyLootLootList.needkeep[i] = false
+        --     end
+        --     EasyLoot_NeedScrollBar_Update()
+        -- end
         if (not EasyLootLootList.DisenchantRarity) then
             EasyLootLootList.DisenchantRarity = -1
         end
@@ -111,7 +123,7 @@ end
 function EasyLoot_SetVariables()
     if (not EasyLootSettings) then
         EasyLootSettings = {}
-        EasyLootSettings.rarity = 1
+        EasyLootSettings.rarity = 0
         EasyLootSettings.quest = 1
         EasyLootSettings.enabled = true
         EasyLootSettings.freeforall = true
@@ -125,19 +137,17 @@ function EasyLoot_SetVariables()
     end
     if (not EasyLootLootList) then
         EasyLootLootList = {}
-        EasyLootLootList.ignore = {}
-        EasyLootLootList.ignoretype = {}
         EasyLootLootList.autoloot = {}
-        EasyLootLootList.need = {}
-        EasyLootLootList.needkeep = {}
-        EasyLootLootList.greed = {}
-        EasyLootLootList.greedkeep = {}
+        EasyLootLootList.ignore = {}
         EasyLootLootList.destroy = {}
+        EasyLootLootList.autoloot_type = {}
+        EasyLootLootList.ignore_type = {}
+        EasyLootLootList.destroy_type = {}
+        -- EasyLootLootList.need = {}
+        -- EasyLootLootList.needkeep = {}
+        -- EasyLootLootList.greed = {}
+        -- EasyLootLootList.greedkeep = {}
     end
-end
-
-function IsDebug()
-    return EasyLootSettings.debug
 end
 
 function EasyLoot_SlashCommand(msg)
@@ -163,7 +173,7 @@ function EasyLoot_IsAutoloot(lootName)
 end
 
 function EasyLoot_NotIgnore(lootName, itemSubType)
-    return ((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)))
+    return ((not EasyLoot_InTable(EasyLootLootList.ignore, lootName)) and (not EasyLoot_InTable(EasyLootLootList.ignore_type, itemSubType)))
 end
 
 function EasyLoot_TableCheck(lootName, itemSubType)
@@ -207,22 +217,13 @@ function EasyLoot_HandleLoot()
         if (itemLink) then
             itemName, _, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice =
                 GetItemInfo(itemLink)
-            if (IsDebug()) then
-                print("trying to loot:", lootName, itemRarity, itemType, itemSubType, itemSellPrice,
-                    EasyLootLootList.EasyLootPriceLimit)
-            end
+            debug_print("trying to loot:", lootName, itemRarity, itemType,
+                itemSubType, itemSellPrice, EasyLootLootList.EasyLootPriceLimit)
         end
-        if (IsDebug()) then
-            print("looting:",
-                (not locked),
-                EasyLootSettings[GetLootMethod()],
-                EasyLoot_IsRareItem(rarity, i),
-                EasyLoot_IsAutoloot(lootName),
-                EasyLoot_NotIgnore(lootName),
-                EasyLoot_IsQuestItem(itemLink, itemType),
-                EasyLoot_IsGoodPrice(itemSellPrice)
-            )
-        end
+        debug_print("looting:", (not locked), EasyLootSettings[GetLootMethod()],
+            EasyLoot_IsRareItem(rarity, i), EasyLoot_IsAutoloot(lootName),
+            EasyLoot_NotIgnore(lootName), EasyLoot_IsQuestItem(itemLink, itemType),
+            EasyLoot_IsGoodPrice(itemSellPrice))
         if (((not locked) and EasyLootSettings[GetLootMethod()]) and
             (EasyLoot_IsRareItem(rarity, i) and
             EasyLoot_TableCheck(lootName, itemSubType)) or
@@ -322,35 +323,35 @@ function EasyLoot_HandleBoP(slotId)
 end
 
 function EasyLoot_HandleIncomingLoot(message)
-    for i = 1, #(EasyLootLootList.need), 1 do
-        if (strmatch(message, "You receive .*" .. EasyLootLootList.need[i] .. ".*")) then
-            -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Match need")
-            if (not EasyLootLootList.needkeep[i]) then
-                tremove(EasyLootLootList.need, i)
-                tremove(EasyLootLootList.needkeep, i)
-                EasyLoot_NeedScrollBar_Update()
-            end
-            return
-        end
-    end
+    -- for i = 1, #(EasyLootLootList.need), 1 do
+    --     if (strmatch(message, "You receive .*" .. EasyLootLootList.need[i] .. ".*")) then
+    --         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Match need")
+    --         if (not EasyLootLootList.needkeep[i]) then
+    --             tremove(EasyLootLootList.need, i)
+    --             tremove(EasyLootLootList.needkeep, i)
+    --             EasyLoot_NeedScrollBar_Update()
+    --         end
+    --         return
+    --     end
+    -- end
 
-    for i = 1, #(EasyLootLootList.greed), 1 do
-        local name
-        if (type(EasyLootLootList.greed) == "table") then
-            name = EasyLootLootList.greed[i].name
-        else
-            name = EasyLootLootList.greed[i]
-        end
-        if (name and strmatch(message, "You receive .*" .. name .. ".*")) then
-            -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Match greed")
-            if (not EasyLootLootList.greedkeep[i]) then
-                tremove(EasyLootLootList.greed, i)
-                tremove(EasyLootLootList.greedkeep, i)
-                EasyLoot_GreedScrollBar_Update()
-            end
-            return
-        end
-    end
+    -- for i = 1, #(EasyLootLootList.greed), 1 do
+    --     local name
+    --     if (type(EasyLootLootList.greed) == "table") then
+    --         name = EasyLootLootList.greed[i].name
+    --     else
+    --         name = EasyLootLootList.greed[i]
+    --     end
+    --     if (name and strmatch(message, "You receive .*" .. name .. ".*")) then
+    --         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Match greed")
+    --         if (not EasyLootLootList.greedkeep[i]) then
+    --             tremove(EasyLootLootList.greed, i)
+    --             tremove(EasyLootLootList.greedkeep, i)
+    --             EasyLoot_GreedScrollBar_Update()
+    --         end
+    --         return
+    --     end
+    -- end
 
     if AtlasLoot_CheckWishlistItem and AtlasLoot_GetWishLists then
         if AtlasLoot_GetWishLists(GetUnitName("player")) then
@@ -378,6 +379,16 @@ function EasyLoot_HandleIncomingLoot(message)
             string.find(message, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Destroy item: "..name)
         if EasyLoot_InTable(EasyLootLootList.destroy, name) then
+            EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
+        end
+    end
+
+    if EasyLootLootList.destroy_type and #EasyLootLootList.destroy_type > 0 then
+        local _, _, _, _, itemId, _, _, _, _, _, _, _, _, name = string.find(message,
+            "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+        local _, _, _, _, _, _, itemSubType, _, _, _, _ = GetItemInfo(itemId)
+        debug_print("|cffffff00EasyLoot Destroy item: ", name, itemSubType)
+        if EasyLoot_InTable(EasyLootLootList.destroy_type, itemSubType) then
             EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
         end
     end
@@ -549,8 +560,8 @@ function EasyLoot_AutoLootScrollBar_Update()
     for line = 1, 5 do
         lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterAutoLootScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.autoloot) then
-            if (strlen(EasyLootLootList.autoloot[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.autoloot[lineplusoffset], 1, 12) .. "..."
+            if (strlen(EasyLootLootList.autoloot[lineplusoffset]) > MAX_ENTRY_LEN) then
+                text = strsub(EasyLootLootList.autoloot[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
             else
                 text = EasyLootLootList.autoloot[lineplusoffset]
             end
@@ -569,8 +580,8 @@ function EasyLoot_IgnoreScrollBar_Update()
     for line = 1, 5 do
         lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterIgnoreScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.ignore) then
-            if (strlen(EasyLootLootList.ignore[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.ignore[lineplusoffset], 1, 12) .. "..."
+            if (strlen(EasyLootLootList.ignore[lineplusoffset]) > MAX_ENTRY_LEN) then
+                text = strsub(EasyLootLootList.ignore[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
             else
                 text = EasyLootLootList.ignore[lineplusoffset]
             end
@@ -578,26 +589,6 @@ function EasyLoot_IgnoreScrollBar_Update()
             _G["EasyLootIgnoreEntry" .. line]:Show()
         else
             _G["EasyLootIgnoreEntry" .. line]:Hide()
-        end
-    end
-end
-
-function EasyLoot_IgnoreTypeScrollBar_Update()
-    local line
-    local lineplusoffset
-    FauxScrollFrame_Update(EasyLootFilterIgnoreTypeScrollFrame, #(EasyLootLootList.ignoretype), 5, 16)
-    for line = 1, 5 do
-        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterIgnoreTypeScrollFrame)
-        if lineplusoffset <= #(EasyLootLootList.ignoretype) then
-            if (strlen(EasyLootLootList.ignoretype[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.ignoretype[lineplusoffset], 1, 12) .. "..."
-            else
-                text = EasyLootLootList.ignoretype[lineplusoffset]
-            end
-            _G["EasyLootIgnoreTypeEntry" .. line]:SetText(text)
-            _G["EasyLootIgnoreTypeEntry" .. line]:Show()
-        else
-            _G["EasyLootIgnoreTypeEntry" .. line]:Hide()
         end
     end
 end
@@ -612,8 +603,8 @@ function EasyLoot_DestroyScrollBar_Update()
     for line = 1, 5 do
         lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterDestroyScrollFrame)
         if lineplusoffset <= #(EasyLootLootList.destroy) then
-            if (strlen(EasyLootLootList.destroy[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.destroy[lineplusoffset], 1, 12) .. "..."
+            if (strlen(EasyLootLootList.destroy[lineplusoffset]) > MAX_ENTRY_LEN) then
+                text = strsub(EasyLootLootList.destroy[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
             else
                 text = EasyLootLootList.destroy[lineplusoffset]
             end
@@ -625,71 +616,131 @@ function EasyLoot_DestroyScrollBar_Update()
     end
 end
 
-function EasyLoot_NeedScrollBar_Update()
+function EasyLoot_AutoLootTypeScrollBar_Update()
     local line
     local lineplusoffset
-    FauxScrollFrame_Update(EasyLootFilterNeedScrollFrame, #(EasyLootLootList.need), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterAutoLootTypeScrollFrame, #(EasyLootLootList.autoloot_type), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
-        if lineplusoffset <= #(EasyLootLootList.need) then
-            if (strlen(EasyLootLootList.need[lineplusoffset]) > 12) then
-                text = strsub(EasyLootLootList.need[lineplusoffset], 1, 12) .. "..."
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterAutoLootTypeScrollFrame)
+        if lineplusoffset <= #(EasyLootLootList.autoloot_type) then
+            if (strlen(EasyLootLootList.autoloot_type[lineplusoffset]) > MAX_ENTRY_LEN) then
+                text = strsub(EasyLootLootList.autoloot_type[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
             else
-                text = EasyLootLootList.need[lineplusoffset]
+                text = EasyLootLootList.autoloot_type[lineplusoffset]
             end
-            local keep = EasyLootLootList.needkeep[lineplusoffset]
-            if (not keep) then
-                keep = false
-            end
-            _G["EasyLootNeedEntry" .. line]:SetText(text)
-            _G["EasyLootNeedEntry" .. line]:Show()
-            _G["EasyLootNeedPermanent" .. line]:SetChecked(keep)
-            _G["EasyLootNeedPermanent" .. line]:Show()
+            _G["EasyLootAutoLootTypeEntry" .. line]:SetText(text)
+            _G["EasyLootAutoLootTypeEntry" .. line]:Show()
         else
-            _G["EasyLootNeedEntry" .. line]:Hide()
-            _G["EasyLootNeedPermanent" .. line]:Hide()
+            _G["EasyLootAutoLootTypeEntry" .. line]:Hide()
         end
     end
 end
 
-function EasyLoot_GreedScrollBar_Update()
+function EasyLoot_IgnoreTypeScrollBar_Update()
     local line
     local lineplusoffset
-    local name
-    local disenchant
-    FauxScrollFrame_Update(EasyLootFilterGreedScrollFrame, #(EasyLootLootList.greed), 5, 16)
+    FauxScrollFrame_Update(EasyLootFilterIgnoreTypeScrollFrame, #(EasyLootLootList.ignore_type), 5, 16)
     for line = 1, 5 do
-        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
-        if lineplusoffset <= #(EasyLootLootList.greed) then
-            if (type(EasyLootLootList.greed[lineplusoffset]) == "table") then
-                name = EasyLootLootList.greed[lineplusoffset].name
-                disenchant = EasyLootLootList.greed[lineplusoffset].disenchant
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterIgnoreTypeScrollFrame)
+        if lineplusoffset <= #(EasyLootLootList.ignore_type) then
+            if (strlen(EasyLootLootList.ignore_type[lineplusoffset]) > MAX_ENTRY_LEN) then
+                text = strsub(EasyLootLootList.ignore_type[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
             else
-                name = EasyLootLootList.greed[lineplusoffset]
-                disenchant = nil
+                text = EasyLootLootList.ignore_type[lineplusoffset]
             end
-            if (strlen(name) > 12) then
-                text = strsub(name, 1, 12) .. "..."
-            else
-                text = name
-            end
-            local keep = EasyLootLootList.greedkeep[lineplusoffset]
-            if (not keep) then
-                keep = false
-            end
-            _G["EasyLootGreedEntry" .. line]:SetText(text)
-            _G["EasyLootGreedEntry" .. line]:Show()
-            _G["EasyLootGreedPermanent" .. line]:SetChecked(keep)
-            _G["EasyLootGreedPermanent" .. line]:Show()
-            _G["EasyLootGreedDisenchant" .. line]:SetChecked(disenchant)
-            _G["EasyLootGreedDisenchant" .. line]:Show()
+            _G["EasyLootIgnoreTypeEntry" .. line]:SetText(text)
+            _G["EasyLootIgnoreTypeEntry" .. line]:Show()
         else
-            _G["EasyLootGreedEntry" .. line]:Hide()
-            _G["EasyLootGreedPermanent" .. line]:Hide()
-            _G["EasyLootGreedDisenchant" .. line]:Hide()
+            _G["EasyLootIgnoreTypeEntry" .. line]:Hide()
         end
     end
 end
+
+function EasyLoot_DestroyTypeScrollBar_Update()
+    local line
+    local lineplusoffset
+    FauxScrollFrame_Update(EasyLootFilterDestroyTypeScrollFrame, #(EasyLootLootList.destroy_type), 5, 16)
+    for line = 1, 5 do
+        lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterDestroyTypeScrollFrame)
+        if lineplusoffset <= #(EasyLootLootList.destroy_type) then
+            if (strlen(EasyLootLootList.destroy_type[lineplusoffset]) > MAX_ENTRY_LEN) then
+                text = strsub(EasyLootLootList.destroy_type[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
+            else
+                text = EasyLootLootList.destroy_type[lineplusoffset]
+            end
+            _G["EasyLootDestroyTypeEntry" .. line]:SetText(text)
+            _G["EasyLootDestroyTypeEntry" .. line]:Show()
+        else
+            _G["EasyLootDestroyTypeEntry" .. line]:Hide()
+        end
+    end
+end
+
+-- function EasyLoot_NeedScrollBar_Update()
+--     local line
+--     local lineplusoffset
+--     FauxScrollFrame_Update(EasyLootFilterNeedScrollFrame, #(EasyLootLootList.need), 5, 16)
+--     for line = 1, 5 do
+--         lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
+--         if lineplusoffset <= #(EasyLootLootList.need) then
+--             if (strlen(EasyLootLootList.need[lineplusoffset]) > MAX_ENTRY_LEN) then
+--                 text = strsub(EasyLootLootList.need[lineplusoffset], 1, MAX_ENTRY_LEN) .. "..."
+--             else
+--                 text = EasyLootLootList.need[lineplusoffset]
+--             end
+--             local keep = EasyLootLootList.needkeep[lineplusoffset]
+--             if (not keep) then
+--                 keep = false
+--             end
+--             _G["EasyLootNeedEntry" .. line]:SetText(text)
+--             _G["EasyLootNeedEntry" .. line]:Show()
+--             _G["EasyLootNeedPermanent" .. line]:SetChecked(keep)
+--             _G["EasyLootNeedPermanent" .. line]:Show()
+--         else
+--             _G["EasyLootNeedEntry" .. line]:Hide()
+--             _G["EasyLootNeedPermanent" .. line]:Hide()
+--         end
+--     end
+-- end
+
+-- function EasyLoot_GreedScrollBar_Update()
+--     local line
+--     local lineplusoffset
+--     local name
+--     local disenchant
+--     FauxScrollFrame_Update(EasyLootFilterGreedScrollFrame, #(EasyLootLootList.greed), 5, 16)
+--     for line = 1, 5 do
+--         lineplusoffset = line + FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
+--         if lineplusoffset <= #(EasyLootLootList.greed) then
+--             if (type(EasyLootLootList.greed[lineplusoffset]) == "table") then
+--                 name = EasyLootLootList.greed[lineplusoffset].name
+--                 disenchant = EasyLootLootList.greed[lineplusoffset].disenchant
+--             else
+--                 name = EasyLootLootList.greed[lineplusoffset]
+--                 disenchant = nil
+--             end
+--             if (strlen(name) > 12) then
+--                 text = strsub(name, 1, 12) .. "..."
+--             else
+--                 text = name
+--             end
+--             local keep = EasyLootLootList.greedkeep[lineplusoffset]
+--             if (not keep) then
+--                 keep = false
+--             end
+--             _G["EasyLootGreedEntry" .. line]:SetText(text)
+--             _G["EasyLootGreedEntry" .. line]:Show()
+--             _G["EasyLootGreedPermanent" .. line]:SetChecked(keep)
+--             _G["EasyLootGreedPermanent" .. line]:Show()
+--             _G["EasyLootGreedDisenchant" .. line]:SetChecked(disenchant)
+--             _G["EasyLootGreedDisenchant" .. line]:Show()
+--         else
+--             _G["EasyLootGreedEntry" .. line]:Hide()
+--             _G["EasyLootGreedPermanent" .. line]:Hide()
+--             _G["EasyLootGreedDisenchant" .. line]:Hide()
+--         end
+--     end
+-- end
 
 function EasyLoot_ListButtonClicked(button)
     local text = button:GetText()
@@ -704,64 +755,74 @@ function EasyLoot_ListButtonClicked(button)
         local line = tonumber(strmatch(name, "%d"))
         tremove(EasyLootLootList.ignore, o + line)
         EasyLoot_IgnoreScrollBar_Update()
-    elseif (strmatch(name, "^EasyLootNeedEntry")) then
-        local o = FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
-        local line = tonumber(strmatch(name, "%d"))
-        tremove(EasyLootLootList.need, o + line)
-        tremove(EasyLootLootList.needkeep, o + line)
-        EasyLoot_NeedScrollBar_Update()
-    elseif (strmatch(name, "^EasyLootGreedEntry")) then
-        local o = FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
-        local line = tonumber(strmatch(name, "%d"))
-        tremove(EasyLootLootList.greed, o + line)
-        tremove(EasyLootLootList.greedkeep, o + line)
-        EasyLoot_GreedScrollBar_Update()
     elseif (strmatch(name, "^EasyLootDestroyEntry")) then
         local o = FauxScrollFrame_GetOffset(EasyLootFilterDestroyScrollFrame)
         local line = tonumber(strmatch(name, "%d"))
         tremove(EasyLootLootList.destroy, o + line)
         EasyLoot_DestroyScrollBar_Update()
+    elseif (strmatch(name, "^EasyLootAutoLootTypeEntry")) then
+        local o = FauxScrollFrame_GetOffset(EasyLootFilterAutoLootTypeScrollFrame)
+        local line = tonumber(strmatch(name, "%d"))
+        tremove(EasyLootLootList.autoloot_type, o + line)
+        EasyLoot_AutoLootTypeScrollBar_Update()
     elseif (strmatch(name, "^EasyLootIgnoreTypeEntry")) then
         local o = FauxScrollFrame_GetOffset(EasyLootFilterIgnoreTypeScrollFrame)
         local line = tonumber(strmatch(name, "%d"))
-        tremove(EasyLootLootList.ignoretype, o + line)
+        tremove(EasyLootLootList.ignore_type, o + line)
         EasyLoot_IgnoreTypeScrollBar_Update()
+    elseif (strmatch(name, "^EasyLootDestroyTypeEntry")) then
+        local o = FauxScrollFrame_GetOffset(EasyLootFilterDestroyTypeScrollFrame)
+        local line = tonumber(strmatch(name, "%d"))
+        tremove(EasyLootLootList.destroy_type, o + line)
+        EasyLoot_DestroyTypeScrollBar_Update()
+    -- elseif (strmatch(name, "^EasyLootNeedEntry")) then
+    --     local o = FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
+    --     local line = tonumber(strmatch(name, "%d"))
+    --     tremove(EasyLootLootList.need, o + line)
+    --     tremove(EasyLootLootList.needkeep, o + line)
+    --     EasyLoot_NeedScrollBar_Update()
+    -- elseif (strmatch(name, "^EasyLootGreedEntry")) then
+    --     local o = FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
+    --     local line = tonumber(strmatch(name, "%d"))
+    --     tremove(EasyLootLootList.greed, o + line)
+    --     tremove(EasyLootLootList.greedkeep, o + line)
+    --     EasyLoot_GreedScrollBar_Update()
     end
 end
 
-function EasyLoot_ListPermanentClicked(self)
-    local name = self:GetName()
-    local checked = self:GetChecked()
-    if (strmatch(name, "^EasyLootNeedPermanent")) then
-        local o = FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
-        local line = tonumber(strmatch(name, "%d"))
-        EasyLootLootList.needkeep[o + line] = checked
-        EasyLoot_NeedScrollBar_Update()
-    elseif (strmatch(name, "^EasyLootGreedPermanent")) then
-        local o = FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
-        local line = tonumber(strmatch(name, "%d"))
-        EasyLootLootList.greedkeep[o + line] = checked
-        EasyLoot_GreedScrollBar_Update()
-    end
-end
+-- function EasyLoot_ListPermanentClicked(self)
+--     local name = self:GetName()
+--     local checked = self:GetChecked()
+--     if (strmatch(name, "^EasyLootNeedPermanent")) then
+--         local o = FauxScrollFrame_GetOffset(EasyLootFilterNeedScrollFrame)
+--         local line = tonumber(strmatch(name, "%d"))
+--         EasyLootLootList.needkeep[o + line] = checked
+--         EasyLoot_NeedScrollBar_Update()
+--     elseif (strmatch(name, "^EasyLootGreedPermanent")) then
+--         local o = FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
+--         local line = tonumber(strmatch(name, "%d"))
+--         EasyLootLootList.greedkeep[o + line] = checked
+--         EasyLoot_GreedScrollBar_Update()
+--     end
+-- end
 
-function EasyLoot_ListDisenchantClicked(self)
-    local name = self:GetName()
-    local checked = self:GetChecked()
-    if (strmatch(name, "^EasyLootGreedDisenchant")) then
-        local o = FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
-        local line = tonumber(strmatch(name, "%d"))
-        if (type(EasyLootLootList.greed[o + line]) == "table") then
-            EasyLootLootList.greed[o + line].disenchant = checked
-        else
-            local name = EasyLootLootList.greed[o + line]
-            EasyLootLootList.greed[o + line] = {}
-            EasyLootLootList.greed[o + line].name = name
-            EasyLootLootList.greed[o + line].disenchant = checked
-        end
-        EasyLoot_GreedScrollBar_Update()
-    end
-end
+-- function EasyLoot_ListDisenchantClicked(self)
+--     local name = self:GetName()
+--     local checked = self:GetChecked()
+--     if (strmatch(name, "^EasyLootGreedDisenchant")) then
+--         local o = FauxScrollFrame_GetOffset(EasyLootFilterGreedScrollFrame)
+--         local line = tonumber(strmatch(name, "%d"))
+--         if (type(EasyLootLootList.greed[o + line]) == "table") then
+--             EasyLootLootList.greed[o + line].disenchant = checked
+--         else
+--             local name = EasyLootLootList.greed[o + line]
+--             EasyLootLootList.greed[o + line] = {}
+--             EasyLootLootList.greed[o + line].name = name
+--             EasyLootLootList.greed[o + line].disenchant = checked
+--         end
+--         EasyLoot_GreedScrollBar_Update()
+--     end
+-- end
 
 function EasyLoot_GreedOnBoEClicked(self)
     EasyLootLootList.greedonboe = self:GetChecked()
@@ -845,26 +906,15 @@ function EasyLoot_AddDestroy()
     EasyLootFilterItem:ClearFocus()
 end
 
-function EasyLoot_AddNeed()
+function EasyLoot_AddAutoLootType()
     local itemName = EasyLootFilterItem:GetText()
     if (itemName and not (itemName == "")) then
-        EasyLootLootList.need[#(EasyLootLootList.need) + 1] = itemName
-        EasyLootLootList.needkeep[#(EasyLootLootList.need)] = false
-        EasyLoot_NeedScrollBar_Update()
-        EasyLootFilterItem:SetText("")
-    end
-    EasyLootFilterItem:ClearFocus()
-end
-
-function EasyLoot_AddGreed()
-    local itemName = EasyLootFilterItem:GetText()
-    if (itemName and not (itemName == "")) then
-        local n = #(EasyLootLootList.greed) + 1
-        EasyLootLootList.greed[n] = {}
-        EasyLootLootList.greed[n].name = itemName
-        EasyLootLootList.greedkeep[n] = false
-        EasyLoot_GreedScrollBar_Update()
-        EasyLootFilterItem:SetText("")
+        _, _, _, _, _, itemType, itemSubType, _, _, _, _ = GetItemInfo(itemName)
+        if (not EasyLoot_InTable(EasyLootLootList.autoloot_type, itemSubType)) then
+            EasyLootLootList.autoloot_type[#(EasyLootLootList.autoloot_type) + 1] = itemSubType
+            EasyLoot_AutoLootTypeScrollBar_Update()
+            EasyLootFilterItem:SetText("")
+        end
     end
     EasyLootFilterItem:ClearFocus()
 end
@@ -873,14 +923,51 @@ function EasyLoot_AddIgnoreType()
     local itemName = EasyLootFilterItem:GetText()
     if (itemName and not (itemName == "")) then
         _, _, _, _, _, itemType, itemSubType, _, _, _, _ = GetItemInfo(itemName)
-        if (not EasyLoot_InTable(EasyLootLootList.ignoretype, itemSubType)) then
-            EasyLootLootList.ignoretype[#(EasyLootLootList.ignoretype) + 1] = itemSubType
+        if (not EasyLoot_InTable(EasyLootLootList.ignore_type, itemSubType)) then
+            EasyLootLootList.ignore_type[#(EasyLootLootList.ignore_type) + 1] = itemSubType
             EasyLoot_IgnoreTypeScrollBar_Update()
             EasyLootFilterItem:SetText("")
         end
     end
     EasyLootFilterItem:ClearFocus()
 end
+
+function EasyLoot_AddDestroyType()
+    local itemName = EasyLootFilterItem:GetText()
+    if (itemName and not (itemName == "")) then
+        _, _, _, _, _, itemType, itemSubType, _, _, _, _ = GetItemInfo(itemName)
+        if (not EasyLoot_InTable(EasyLootLootList.destroy_type, itemSubType)) then
+            EasyLootLootList.destroy_type[#(EasyLootLootList.destroy_type) + 1] = itemSubType
+            EasyLoot_DestroyTypeScrollBar_Update()
+            EasyLootFilterItem:SetText("")
+        end
+    end
+    EasyLootFilterItem:ClearFocus()
+end
+
+-- function EasyLoot_AddNeed()
+--     local itemName = EasyLootFilterItem:GetText()
+--     if (itemName and not (itemName == "")) then
+--         EasyLootLootList.need[#(EasyLootLootList.need) + 1] = itemName
+--         EasyLootLootList.needkeep[#(EasyLootLootList.need)] = false
+--         EasyLoot_NeedScrollBar_Update()
+--         EasyLootFilterItem:SetText("")
+--     end
+--     EasyLootFilterItem:ClearFocus()
+-- end
+
+-- function EasyLoot_AddGreed()
+--     local itemName = EasyLootFilterItem:GetText()
+--     if (itemName and not (itemName == "")) then
+--         local n = #(EasyLootLootList.greed) + 1
+--         EasyLootLootList.greed[n] = {}
+--         EasyLootLootList.greed[n].name = itemName
+--         EasyLootLootList.greedkeep[n] = false
+--         EasyLoot_GreedScrollBar_Update()
+--         EasyLootFilterItem:SetText("")
+--     end
+--     EasyLootFilterItem:ClearFocus()
+-- end
 
 function EasyLoot_DEBeforeGreed(value)
     if value then
