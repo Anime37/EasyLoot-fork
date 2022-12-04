@@ -370,6 +370,7 @@ function EasyLoot_HandleIncomingLoot(message)
             if quality == 0 and EasyLootLootList.EasyLootPriceLimit > vendorPrice then
                 -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Destroy grey: "..itemId..", quality:"..quality)
                 EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
+                return
             end
         end
     end
@@ -380,6 +381,7 @@ function EasyLoot_HandleIncomingLoot(message)
         -- DEFAULT_CHAT_FRAME:AddMessage("|cffffff00EasyLoot Destroy item: "..name)
         if EasyLoot_InTable(EasyLootLootList.destroy, name) then
             EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
+            return
         end
     end
 
@@ -390,6 +392,7 @@ function EasyLoot_HandleIncomingLoot(message)
         debug_print("|cffffff00EasyLoot Destroy item: ", name, itemSubType)
         if EasyLoot_InTable(EasyLootLootList.destroy_type, itemSubType) then
             EasyLootDestroyItem[#(EasyLootDestroyItem) + 1] = tonumber(itemId)
+            return
         end
     end
 end
